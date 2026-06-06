@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eclipse Solar · 12.08.2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #070608;
+  --bg2: #0d0b0e;
+  --surface: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.07);
+  --text: #e8e0d5;
+  --muted: rgba(232,224,213,0.38);
+  --accent: #f0a500;
+  --accent2: #ff5e1a;
+  --total: #ff3d00;
+  --white: #faf8f5;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font-body); }
+
+/* GRAIN OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+  opacity: 0.028;
+}
+
+/* ─── LAYOUT ─── */
+.shell {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  grid-template-rows: 56px 1fr 44px;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+}
+
+/* ─── TOPBAR ─── */
+.topbar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 10;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.logo-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--white);
+  line-height: 1;
+}
+.logo-date {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.14em;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.7); }
+}
+.status-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+/* ─── SKY CANVAS ─── */
+.sky-wrap {
+  position: relative;
+  overflow: hidden;
+  background: #02010a;
+}
+#skyCanvas { width: 100%; height: 100%; display: block; }
+
+/* Sky overlay info */
+.sky-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.sky-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.2);
+  text-transform: uppercase;
+}
+
+/* Big coverage display on sky */
+.sky-coverage {
+  align-self: flex-end;
+  text-align: right;
+}
+.sky-coverage-num {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 10vw, 110px);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  transition: color 0.6s ease;
+  text-shadow: 0 0 60px currentColor;
+}
+.sky-coverage-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Eclipse type pill */
+.eclipse-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  transition: all 0.4s ease;
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* ─── RIGHT PANEL ─── */
+.panel {
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* MAP */
+.map-block {
+  flex-shrink: 0;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.block-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.block-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+#mapCanvas {
+  width: 100%;
+  height: 190px;
+  display: block;
+  border-radius: 6px;
+  cursor: crosshair;
+  border: 1px solid var(--border);
+}
+
+/* Location row */
+.loc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.loc-city {
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  color: var(--white);
+}
+.loc-coords {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+}
+
+/* TIME BLOCK */
+.time-block {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.time-display-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.time-big {
+  font-family: var(--font-display);
+  font-size: 42px;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  line-height: 1;
+  transition: color 0.4s;
+}
+.time-phase {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  align-self: center;
+}
+
+/* Custom slider */
+.slider-wrap { position: relative; }
+.slider-track {
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  position: relative;
+  margin-bottom: 6px;
+}
+.slider-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  pointer-events: none;
+  transition: width 0.05s;
+}
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  position: absolute;
+  top: 0; left: 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px rgba(240,165,0,0.15), 0 2px 8px rgba(0,0,0,0.5);
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: grab;
+}
+input[type=range]:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.2);
+  box-shadow: 0 0 0 6px rgba(240,165,0,0.2), 0 2px 12px rgba(0,0,0,0.6);
+}
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.18);
+  margin-top: 10px;
+}
+
+/* COVERAGE STRIP */
+.coverage-block {
+  flex-shrink: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.coverage-bar-wrap {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0 6px;
+}
+.coverage-bar {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1), background 0.5s ease;
+}
+.coverage-pct-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.coverage-big {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.02em;
+  transition: color 0.4s;
+}
+.coverage-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+}
+
+/* STATS GRID */
+.stats-block {
+  flex-shrink: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.stat-val {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  transition: color 0.4s;
+}
+.stat-key {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* PHENOMENA */
+.phenomena-block {
+  flex: 1;
+  padding: 14px 20px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.phenomena-block::-webkit-scrollbar { display: none; }
+
+.ph-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  transition: opacity 0.4s ease;
+  opacity: 0.3;
+}
+.ph-item.on { opacity: 1; }
+.ph-icon {
+  font-size: 13px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.ph-text {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1.35;
+  flex: 1;
+}
+.ph-bar {
+  width: 28px; height: 2px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ph-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: width 0.5s ease;
+}
+
+/* ─── FOOTER ─── */
+.footer {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+}
+.footer-copy {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+.footer-right {
+  display: flex;
+  gap: 20px;
+}
+.footer-tag {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.12);
+  letter-spacing: 0.1em;
+}
+
+/* ─── TRANSITIONS ─── */
+.fade-val {
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+
+/* RESPONSIVE */
+@media (max-width: 820px) {
+  html, body { overflow: auto; }
+  .shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: 56px 55vw auto 44px;
+    height: auto;
+  }
+  .sky-wrap { grid-column: 1; grid-row: 2; }
+  .panel { grid-column: 1; grid-row: 3; border-left: none; border-top: 1px solid var(--border); }
+  .footer { grid-column: 1; grid-row: 4; }
+  #mapCanvas { height: 170px; }
+  .sky-coverage-num { font-size: 56px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">
+      <span class="logo-title">ECLIPSE SOLAR</span>
+      <span class="logo-date">12 · 08 · 2026 &nbsp;·&nbsp; PENÍNSULA IBÉRICA</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-dot"></div>
+      <span class="status-text">SIMULACIÓN INTERACTIVA</span>
+    </div>
+  </header>
+
+  <!-- SKY -->
+  <div class="sky-wrap">
+    <canvas id="skyCanvas"></canvas>
+    <div class="sky-overlay">
+      <div>
+        <div class="sky-tag">Vista del cielo · tiempo real</div>
+        <div class="eclipse-pill" id="eclipsePill">— Sin eclipse</div>
+      </div>
+      <div class="sky-coverage">
+        <div class="sky-coverage-num fade-val" id="bigCoverage">0%</div>
+        <div class="sky-coverage-label">disco solar cubierto</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL -->
+  <aside class="panel">
+
+    <!-- MAP -->
+    <div class="map-block">
+      <div class="block-label">Ubicación</div>
+      <canvas id="mapCanvas"></canvas>
+      <div class="loc-row">
+        <div class="loc-city" id="locCity">Madrid</div>
+        <div class="loc-coords">
+          <div id="locLat">40.4° N</div>
+          <div id="locLon">3.7° O</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIME -->
+    <div class="time-block">
+      <div class="block-label">Hora del eclipse</div>
+      <div class="time-display-row">
+        <div class="time-big fade-val" id="timeBig">20:00</div>
+        <div class="time-phase" id="timePhase">—</div>
+      </div>
+      <div class="slider-wrap">
+        <div class="slider-track">
+          <div class="slider-fill" id="sliderFill"></div>
+          <input type="range" id="timeSlider" min="0" max="120" value="60">
+        </div>
+        <div class="slider-labels">
+          <span>19:00</span><span>19:30</span><span>20:00</span><span>20:30</span><span>21:00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COVERAGE -->
+    <div class="coverage-block">
+      <div class="block-label">Cobertura solar</div>
+      <div class="coverage-pct-row">
+        <div class="coverage-big fade-val" id="covBig">0.0%</div>
+        <div class="coverage-sub" id="covType">SIN ECLIPSE</div>
+      </div>
+      <div class="coverage-bar-wrap">
+        <div class="coverage-bar" id="covBar"></div>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-block">
+      <div class="stat">
+        <div class="stat-val fade-val" id="statLum">100%</div>
+        <div class="stat-key">Luminosidad</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val fade-val" id="statPhase">—</div>
+        <div class="stat-key">Fase</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val fade-val" id="statMax">—</div>
+        <div class="stat-key">Máximo</div>
+      </div>
+    </div>
+
+    <!-- PHENOMENA -->
+    <div class="phenomena-block">
+      <div class="block-label">Fenómenos visibles</div>
+      <div class="ph-item" id="ph0">
+        <div class="ph-icon">🌤</div>
+        <div class="ph-text">Cambio sutil en la luz ambiental</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph1">
+        <div class="ph-icon">🌡</div>
+        <div class="ph-text">Descenso de temperatura perceptible</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph2">
+        <div class="ph-icon">🌘</div>
+        <div class="ph-text">Luz crepuscular intensa</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph3">
+        <div class="ph-icon">🐦</div>
+        <div class="ph-text">Comportamiento anómalo en animales</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph4">
+        <div class="ph-icon">⭐</div>
+        <div class="ph-text">Estrellas y Venus visibles de día</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph5">
+        <div class="ph-icon">🌑</div>
+        <div class="ph-text">Oscuridad repentina como de noche</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph6">
+        <div class="ph-icon">☀</div>
+        <div class="ph-text">Corona solar visible (halo blanco)</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+      <div class="ph-item" id="ph7">
+        <div class="ph-icon">💎</div>
+        <div class="ph-text">Anillo de diamante / Cuentas de Baily</div>
+        <div class="ph-bar"><div class="ph-bar-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-copy">© 2026 Alejandro Ferrandis · Todos los derechos reservados</div>
+    <div class="footer-right">
+      <span class="footer-tag">Datos: IGN España</span>
+      <span class="footer-tag">Eclipse 12.08.2026</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// ECLIPSE MODEL
+// ═══════════════════════════════════════════════════════════
+
+function getTotalityInfo(lat, lon) {
+  if (lat < 35 || lat > 45 || lon < -10 || lon > 5) return { inTotality: false, coverage: 0 };
+
+  const cLon = [-9, -7, -5, -3, -1, 0, 1, 2, 3.5];
+  const cLat = [43.4, 43.2, 42.8, 42.3, 41.5, 41.0, 40.5, 40.0, 39.4];
+
+  let cl = cLat[0];
+  for (let i = 0; i < cLon.length - 1; i++) {
+    if (lon >= cLon[i] && lon <= cLon[i + 1]) {
+      const t = (lon - cLon[i]) / (cLon[i + 1] - cLon[i]);
+      cl = cLat[i] + t * (cLat[i + 1] - cLat[i]);
+      break;
+    }
+  }
+  if (lon < cLon[0]) cl = cLat[0];
+  if (lon > cLon[cLon.length - 1]) cl = cLat[cLon.length - 1];
+
+  const halfW = 1.0;
+  const dist = lat - cl;
+  let coverage, inTotality = false;
+
+  if (Math.abs(dist) <= halfW) {
+    inTotality = true;
+    coverage = 100;
+  } else {
+    const over = Math.abs(dist) - halfW;
+    coverage = dist < 0 ? 100 - over * 17 : 100 - over * 10;
+    coverage = Math.max(58, Math.min(99.9, coverage));
+  }
+  return { inTotality, coverage, dist, centerLat: cl };
+}
+
+function getEclipseTiming(lat, lon) {
+  const adj = (lon + 4) * 0.4;
+  return {
+    start:   19 * 60 + 35 + adj,
+    maximum: 20 * 60 + 28 + adj,
+    end:     21 * 60 + 25 + adj,
+    sunset:  20 * 60 + 55 + adj
+  };
+}
+
+function getCoverageAtTime(lat, lon, tMin) {
+  const info = getTotalityInfo(lat, lon);
+  const timing = getEclipseTiming(lat, lon);
+  if (tMin < timing.start || tMin > timing.end) return 0;
+  if (tMin > timing.sunset) return null;
+
+  let progress = tMin <= timing.maximum
+    ? (tMin - timing.start) / (timing.maximum - timing.start)
+    : 1 - (tMin - timing.maximum) / (timing.end - timing.maximum);
+  const smooth = progress < 0.5
+    ? 2 * progress * progress
+    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+  return smooth * info.coverage;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const S = {
+  lat: 40.4, lon: -3.7,
+  timeMin: 20 * 60,
+  coverage: 0,
+  frame: 0,
+  stars: []
+};
+
+function genStars(n) {
+  S.stars = Array.from({ length: n }, () => ({
+    x: Math.random(), y: Math.random() * 0.88,
+    r: Math.random() * 1.6 + 0.3,
+    phase: Math.random() * Math.PI * 2,
+    bright: Math.random()
+  }));
+}
+genStars(220);
+
+// ═══════════════════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════════════════
+const mapC = document.getElementById('mapCanvas');
+const mCtx = mapC.getContext('2d');
+
+const peninsulaPath = [
+  [43.8,-8.9],[43.7,-7.7],[43.4,-6.5],[43.5,-5.5],[43.4,-4.5],
+  [43.5,-3.5],[43.4,-2.5],[43.3,-1.8],[43.1,-1.0],[42.8,-0.3],
+  [42.5,0.5],[42.3,1.5],[41.9,2.3],[41.4,2.8],[40.8,0.8],
+  [40.0,0.2],[39.5,-0.1],[38.7,-0.0],[37.9,0.2],[37.5,-0.5],
+  [36.8,-2.4],[36.2,-5.3],[36.0,-5.6],[36.1,-6.2],[36.9,-7.0],
+  [37.0,-7.4],[37.2,-7.9],[37.4,-8.7],[38.2,-8.8],[38.7,-9.3],
+  [38.5,-9.5],[39.0,-9.4],[40.0,-8.6],[41.0,-8.5],[41.8,-8.8],
+  [42.1,-8.7],[42.4,-8.5],[43.8,-8.9]
+];
+
+const BOUNDS = { minLon: -9.8, maxLon: 4.5, minLat: 35.2, maxLat: 44.8 };
+
+function ll2xy(lat, lon, w, h) {
+  return {
+    x: ((lon - BOUNDS.minLon) / (BOUNDS.maxLon - BOUNDS.minLon)) * w,
+    y: ((BOUNDS.maxLat - lat) / (BOUNDS.maxLat - BOUNDS.minLat)) * h
+  };
+}
+function xy2ll(x, y, w, h) {
+  return {
+    lat: BOUNDS.maxLat - (y / h) * (BOUNDS.maxLat - BOUNDS.minLat),
+    lon: BOUNDS.minLon + (x / w) * (BOUNDS.maxLon - BOUNDS.minLon)
+  };
+}
+
+// Precompute heatmap as offscreen
+let heatmap = null;
+function buildHeatmap(w, h) {
+  const off = document.createElement('canvas');
+  off.width = w; off.height = h;
+  const ctx = off.getContext('2d');
+  const img = ctx.createImageData(w, h);
+  for (let px = 0; px < w; px++) {
+    for (let py = 0; py < h; py++) {
+      const { lat, lon } = xy2ll(px, py, w, h);
+      const info = getTotalityInfo(lat, lon);
+      if (info.coverage > 0) {
+        const idx = (py * w + px) * 4;
+        if (info.inTotality) {
+          img.data[idx]   = 255;
+          img.data[idx+1] = 80;
+          img.data[idx+2] = 10;
+          img.data[idx+3] = 160;
+        } else {
+          const t = Math.max(0, (info.coverage - 58) / 42);
+          img.data[idx]   = Math.round(90 + t * 140);
+          img.data[idx+1] = Math.round(40 + t * 80);
+          img.data[idx+2] = 5;
+          img.data[idx+3] = Math.round(20 + t * 100);
+        }
+      }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  return off;
+}
+
+function drawMap() {
+  const w = mapC.width, h = mapC.height;
+  mCtx.clearRect(0, 0, w, h);
+
+  // Deep bg
+  mCtx.fillStyle = '#08070d';
+  mCtx.fillRect(0, 0, w, h);
+
+  // Heatmap
+  if (!heatmap) heatmap = buildHeatmap(w, h);
+  mCtx.drawImage(heatmap, 0, 0, w, h);
+
+  // Peninsula outline
+  mCtx.beginPath();
+  peninsulaPath.forEach(([lat, lon], i) => {
+    const { x, y } = ll2xy(lat, lon, w, h);
+    i === 0 ? mCtx.moveTo(x, y) : mCtx.lineTo(x, y);
+  });
+  mCtx.closePath();
+  mCtx.strokeStyle = 'rgba(250,248,245,0.22)';
+  mCtx.lineWidth = 1;
+  mCtx.stroke();
+
+  // Totality centerline
+  const cLon = [-9, -7, -5, -3, -1, 0, 1, 2, 3.5];
+  const cLat = [43.4, 43.2, 42.8, 42.3, 41.5, 41.0, 40.5, 40.0, 39.4];
+  mCtx.beginPath();
+  cLon.forEach((lon, i) => {
+    const { x, y } = ll2xy(cLat[i], lon, w, h);
+    i === 0 ? mCtx.moveTo(x, y) : mCtx.lineTo(x, y);
+  });
+  mCtx.strokeStyle = 'rgba(255,94,26,0.7)';
+  mCtx.lineWidth = 1.5;
+  mCtx.setLineDash([5, 4]);
+  mCtx.stroke();
+  mCtx.setLineDash([]);
+
+  // Label
+  const lp = ll2xy(42.5, -4.5, w, h);
+  mCtx.font = '8px DM Mono';
+  mCtx.fillStyle = 'rgba(255,94,26,0.75)';
+  mCtx.fillText('TOTALIDAD', lp.x - 24, lp.y - 6);
+
+  // City dots
+  const cities = [
+    { n: 'Madrid', lat: 40.4, lon: -3.7 }, { n: 'BCN', lat: 41.4, lon: 2.2 },
+    { n: 'Sevilla', lat: 37.4, lon: -5.9 }, { n: 'Valencia', lat: 39.5, lon: -0.4 },
+    { n: 'Bilbao', lat: 43.3, lon: -2.9 }, { n: 'Oviedo', lat: 43.4, lon: -5.8 },
+    { n: 'La Manga', lat: 37.6, lon: -0.7 }, { n: 'León', lat: 42.6, lon: -5.6 },
+    { n: 'Zaragoza', lat: 41.6, lon: -0.9 },
+  ];
+  cities.forEach(c => {
+    const { x, y } = ll2xy(c.lat, c.lon, w, h);
+    mCtx.beginPath();
+    mCtx.arc(x, y, 2, 0, Math.PI * 2);
+    mCtx.fillStyle = 'rgba(250,248,245,0.5)';
+    mCtx.fill();
+    mCtx.font = '7.5px DM Mono';
+    mCtx.fillStyle = 'rgba(250,248,245,0.35)';
+    mCtx.fillText(c.n, x + 4, y + 3);
+  });
+
+  // Selected pin
+  const { x: px, y: py } = ll2xy(S.lat, S.lon, w, h);
+  // Outer ring animated glow
+  const grad = mCtx.createRadialGradient(px, py, 0, px, py, 14);
+  grad.addColorStop(0, 'rgba(240,165,0,0.35)');
+  grad.addColorStop(1, 'transparent');
+  mCtx.beginPath();
+  mCtx.arc(px, py, 14, 0, Math.PI * 2);
+  mCtx.fillStyle = grad;
+  mCtx.fill();
+  // Pin dot
+  mCtx.beginPath();
+  mCtx.arc(px, py, 4, 0, Math.PI * 2);
+  mCtx.fillStyle = '#f0a500';
+  mCtx.fill();
+  mCtx.strokeStyle = '#070608';
+  mCtx.lineWidth = 1.5;
+  mCtx.stroke();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SKY
+// ═══════════════════════════════════════════════════════════
+const skyC = document.getElementById('skyCanvas');
+const sCtx = skyC.getContext('2d');
+
+function drawSky() {
+  const w = skyC.width, h = skyC.height;
+  const cov = S.coverage / 100;
+  const info = getTotalityInfo(S.lat, S.lon);
+  const isTotal = cov >= 1.0 && info.inTotality;
+  const timing = getEclipseTiming(S.lat, S.lon);
+  const tod = (S.timeMin - 19 * 60) / 60; // 0..2
+  const inEclipse = S.timeMin >= timing.start && S.timeMin <= timing.sunset;
+
+  // Sky brightness (perceptual)
+  let skyB = isTotal ? 0.008 : Math.max(0.015, Math.pow(1 - cov, 0.32));
+
+  // ── Background gradient ──
+  let topR, topG, topB, horR, horG, horB;
+  if (isTotal) {
+    topR=2;topG=1;topB=10; horR=12;horG=5;horB=25;
+  } else {
+    topR = Math.round(4 + skyB*28 + tod*6);
+    topG = Math.round(3 + skyB*36 + tod*4);
+    topB = Math.round(8 + skyB*75 - tod*8);
+    horR = Math.round(16 + skyB*100 + tod*50);
+    horG = Math.round(8 + skyB*55 + tod*18);
+    horB = Math.round(4 + skyB*18 - tod*2);
+  }
+  const skyGrad = sCtx.createLinearGradient(0, 0, 0, h * 0.8);
+  skyGrad.addColorStop(0, `rgb(${topR},${topG},${topB})`);
+  skyGrad.addColorStop(0.55, `rgb(${Math.round((topR+horR)/2)},${Math.round((topG+horG)/2)},${Math.round((topB+horB)/2)})`);
+  skyGrad.addColorStop(1, `rgb(${horR},${horG},${horB})`);
+  sCtx.fillStyle = skyGrad;
+  sCtx.fillRect(0, 0, w, h * 0.8);
+
+  // Totality: 360° horizon sunset glow
+  if (cov > 0.85) {
+    const a = Math.min(1, (cov - 0.85) / 0.15) * (isTotal ? 0.85 : 0.45);
+    // bottom glow
+    const hg = sCtx.createLinearGradient(0, h * 0.55, 0, h * 0.8);
+    hg.addColorStop(0, 'transparent');
+    hg.addColorStop(0.6, `rgba(200,60,10,${a * 0.4})`);
+    hg.addColorStop(1, `rgba(255,80,20,${a * 0.6})`);
+    sCtx.fillStyle = hg;
+    sCtx.fillRect(0, h * 0.55, w, h * 0.25);
+    // left/right horizon
+    ['left','right'].forEach(side => {
+      const x0 = side === 'left' ? 0 : w;
+      const gr = sCtx.createRadialGradient(x0, h * 0.78, 0, x0, h * 0.78, w * 0.5);
+      gr.addColorStop(0, `rgba(180,50,5,${a * 0.5})`);
+      gr.addColorStop(1, 'transparent');
+      sCtx.fillStyle = gr;
+      sCtx.fillRect(0, h * 0.5, w, h * 0.3);
+    });
+  }
+
+  // ── Ground ──
+  const gb = Math.round(10 + skyB * 35);
+  const groundGrad = sCtx.createLinearGradient(0, h * 0.8, 0, h);
+  groundGrad.addColorStop(0, `rgb(${gb+3},${gb},${gb-2})`);
+  groundGrad.addColorStop(1, `rgb(${gb-3},${gb-3},${gb-3})`);
+  sCtx.fillStyle = groundGrad;
+  sCtx.fillRect(0, h * 0.8, w, h * 0.2);
+  // subtle horizon line
+  sCtx.strokeStyle = `rgba(255,255,255,${0.03 + skyB * 0.05})`;
+  sCtx.lineWidth = 1;
+  sCtx.beginPath();
+  sCtx.moveTo(0, h * 0.8); sCtx.lineTo(w, h * 0.8);
+  sCtx.stroke();
+
+  // ── Stars ──
+  if (cov > 0.82) {
+    const sa = Math.min(1, (cov - 0.82) / 0.18) * (isTotal ? 1 : 0.55);
+    S.stars.forEach(st => {
+      const tw = 0.75 + 0.25 * Math.sin(S.frame * 0.04 + st.phase);
+      sCtx.beginPath();
+      sCtx.arc(st.x * w, st.y * h * 0.77, st.r, 0, Math.PI * 2);
+      sCtx.fillStyle = `rgba(255,255,248,${st.bright * sa * tw})`;
+      sCtx.fill();
+    });
+    // Venus
+    const va = sa * 0.95;
+    const vx = w * 0.63, vy = h * 0.14;
+    const vg = sCtx.createRadialGradient(vx, vy, 0, vx, vy, 10);
+    vg.addColorStop(0, `rgba(255,245,210,${va})`);
+    vg.addColorStop(1, 'transparent');
+    sCtx.fillStyle = vg;
+    sCtx.beginPath(); sCtx.arc(vx, vy, 10, 0, Math.PI * 2); sCtx.fill();
+    sCtx.beginPath(); sCtx.arc(vx, vy, 2.5, 0, Math.PI * 2);
+    sCtx.fillStyle = `rgba(255,245,210,${va})`; sCtx.fill();
+    if (isTotal) {
+      sCtx.font = `${Math.max(10, w*0.018)}px DM Mono`;
+      sCtx.fillStyle = `rgba(232,224,213,${va * 0.7})`;
+      sCtx.fillText('Venus', vx + 8, vy + 4);
+    }
+  }
+
+  // ── Sun position ──
+  const sunX = w * 0.46 + (1 - tod * 0.5) * w * 0.04;
+  const sunY = h * (0.62 - (2 - tod) * 0.055);
+  const sunR = Math.min(w, h) * 0.072;
+
+  // Moon offset
+  const over = cov > 0.5 ? -1 : 1;
+  const mOff = (1 - cov) * sunR * 2.2;
+  const moonX = sunX - mOff * 0.85;
+  const moonY = sunY - mOff * 0.12;
+
+  // ── Corona (total only) ──
+  if (isTotal) {
+    for (let i = 0; i < 28; i++) {
+      const ang = (i / 28) * Math.PI * 2 + S.frame * 0.0015;
+      const rLen = sunR * (2.8 + 0.8 * Math.sin(S.frame * 0.008 + i * 0.7));
+      const spread = 0.09;
+      const cGrd = sCtx.createLinearGradient(
+        sunX, sunY,
+        sunX + Math.cos(ang) * rLen, sunY + Math.sin(ang) * rLen
+      );
+      cGrd.addColorStop(0, 'rgba(255,252,240,0.5)');
+      cGrd.addColorStop(0.3, 'rgba(255,230,160,0.15)');
+      cGrd.addColorStop(1, 'transparent');
+      sCtx.beginPath();
+      sCtx.moveTo(sunX, sunY);
+      sCtx.lineTo(sunX + Math.cos(ang - spread) * rLen, sunY + Math.sin(ang - spread) * rLen);
+      sCtx.lineTo(sunX + Math.cos(ang + spread) * rLen, sunY + Math.sin(ang + spread) * rLen);
+      sCtx.closePath();
+      sCtx.fillStyle = cGrd;
+      sCtx.fill();
+    }
+    const cHalo = sCtx.createRadialGradient(sunX, sunY, sunR, sunX, sunY, sunR * 4.5);
+    cHalo.addColorStop(0, 'rgba(255,248,225,0.28)');
+    cHalo.addColorStop(0.4, 'rgba(255,220,140,0.1)');
+    cHalo.addColorStop(1, 'transparent');
+    sCtx.fillStyle = cHalo;
+    sCtx.beginPath(); sCtx.arc(sunX, sunY, sunR * 4.5, 0, Math.PI * 2); sCtx.fill();
+  } else {
+    // Regular sun atmospheric glow
+    const glowR = sunR * (1.8 + (1 - cov) * 2.5);
+    const sunGlow = sCtx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, glowR);
+    const ga = (1 - cov) * 0.35 + 0.04;
+    sunGlow.addColorStop(0, `rgba(255,200,80,${ga})`);
+    sunGlow.addColorStop(1, 'transparent');
+    sCtx.fillStyle = sunGlow;
+    sCtx.beginPath(); sCtx.arc(sunX, sunY, glowR, 0, Math.PI * 2); sCtx.fill();
+  }
+
+  // ── Sun disc ──
+  if (!isTotal) {
+    sCtx.save();
+    sCtx.beginPath(); sCtx.arc(sunX, sunY, sunR, 0, Math.PI * 2); sCtx.clip();
+    const sGrd = sCtx.createRadialGradient(sunX - sunR*0.25, sunY - sunR*0.25, 0, sunX, sunY, sunR);
+    sGrd.addColorStop(0, '#fffde8');
+    sGrd.addColorStop(0.5, '#ffd040');
+    sGrd.addColorStop(1, '#ff8500');
+    sCtx.fillStyle = sGrd;
+    sCtx.fillRect(sunX - sunR, sunY - sunR, sunR * 2, sunR * 2);
+    sCtx.restore();
+  } else {
+    // Chromosphere thin ring
+    sCtx.beginPath();
+    sCtx.arc(sunX, sunY, sunR * 1.04, 0, Math.PI * 2);
+    sCtx.strokeStyle = 'rgba(255,70,20,0.55)';
+    sCtx.lineWidth = sunR * 0.07;
+    sCtx.stroke();
+  }
+
+  // ── Moon ──
+  if (S.coverage > 0.5) {
+    sCtx.beginPath();
+    sCtx.arc(moonX, moonY, sunR * 1.03, 0, Math.PI * 2);
+    const mGrd = sCtx.createRadialGradient(moonX - sunR*0.08, moonY - sunR*0.08, 0, moonX, moonY, sunR);
+    mGrd.addColorStop(0, 'rgb(10,11,18)');
+    mGrd.addColorStop(1, 'rgb(6,7,14)');
+    sCtx.fillStyle = mGrd;
+    sCtx.fill();
+  }
+
+  // ── Diamond ring / Baily's beads ──
+  if (info.inTotality && cov > 0.996 && cov < 1.0) {
+    const bAng = S.frame * 0.06;
+    const bx = sunX + Math.cos(bAng) * sunR * 1.0;
+    const by = sunY + Math.sin(bAng) * sunR * 1.0;
+    const bg = sCtx.createRadialGradient(bx, by, 0, bx, by, sunR * 0.45);
+    bg.addColorStop(0, 'rgba(255,255,240,1)');
+    bg.addColorStop(0.3, 'rgba(255,230,120,0.5)');
+    bg.addColorStop(1, 'transparent');
+    sCtx.fillStyle = bg;
+    sCtx.beginPath(); sCtx.arc(bx, by, sunR * 0.45, 0, Math.PI * 2); sCtx.fill();
+  }
+
+  S.frame++;
+}
+
+// ═══════════════════════════════════════════════════════════
+// UI UPDATE
+// ═══════════════════════════════════════════════════════════
+const CITIES = [
+  { n: 'Madrid', lat: 40.4, lon: -3.7 }, { n: 'Barcelona', lat: 41.4, lon: 2.2 },
+  { n: 'Sevilla', lat: 37.4, lon: -5.9 }, { n: 'Valencia', lat: 39.5, lon: -0.4 },
+  { n: 'Bilbao', lat: 43.3, lon: -2.9 }, { n: 'Oviedo', lat: 43.4, lon: -5.8 },
+  { n: 'La Manga', lat: 37.6, lon: -0.7 }, { n: 'Zaragoza', lat: 41.6, lon: -0.9 },
+  { n: 'León', lat: 42.6, lon: -5.6 }, { n: 'Murcia', lat: 37.9, lon: -1.1 },
+  { n: 'Alicante', lat: 38.3, lon: -0.5 }, { n: 'Granada', lat: 37.2, lon: -3.6 },
+  { n: 'Málaga', lat: 36.7, lon: -4.4 }, { n: 'Lisboa', lat: 38.7, lon: -9.1 },
+  { n: 'Córdoba', lat: 37.9, lon: -4.8 }, { n: 'Palma', lat: 39.6, lon: 2.6 },
+  { n: 'A Coruña', lat: 43.4, lon: -8.4 }, { n: 'Burgos', lat: 42.3, lon: -3.7 },
+];
+
+function nearestCity(lat, lon) {
+  let best = null, bd = Infinity;
+  CITIES.forEach(c => {
+    const d = (c.lat-lat)**2 + (c.lon-lon)**2;
+    if (d < bd) { bd = d; best = c; }
+  });
+  return best && bd < 4 ? best.n : `${lat.toFixed(1)}°N`;
+}
+
+function fmtTime(min) {
+  const h = Math.floor(min / 60);
+  const m = Math.round(min % 60);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+}
+
+// Accent colors by coverage
+function covColor(cov, isTotal) {
+  if (isTotal && cov >= 100) return '#ff3d00';
+  if (cov >= 95) return '#ff6a00';
+  if (cov >= 85) return '#f0a500';
+  if (cov >= 60) return '#c8a060';
+  return 'rgba(232,224,213,0.5)';
+}
+
+function updateUI() {
+  const info = getTotalityInfo(S.lat, S.lon);
+  const timing = getEclipseTiming(S.lat, S.lon);
+  let cov = getCoverageAtTime(S.lat, S.lon, S.timeMin) ?? 0;
+  S.coverage = cov;
+
+  const col = covColor(cov, info.inTotality);
+  const isTotal = info.inTotality && cov >= 100;
+
+  // Big sky coverage
+  document.getElementById('bigCoverage').textContent = cov > 0.05 ? `${cov.toFixed(1)}%` : '—';
+  document.getElementById('bigCoverage').style.color = col;
+  document.getElementById('bigCoverage').style.textShadow = cov > 50 ? `0 0 60px ${col}` : 'none';
+
+  // Eclipse pill
+  const pill = document.getElementById('eclipsePill');
+  if (isTotal) {
+    pill.textContent = '● ECLIPSE TOTAL';
+    pill.style.color = '#ff3d00';
+    pill.style.borderColor = '#ff3d00';
+    pill.style.background = 'rgba(255,61,0,0.1)';
+  } else if (cov > 0.1) {
+    pill.textContent = `◑ Eclipse Parcial`;
+    pill.style.color = '#f0a500';
+    pill.style.borderColor = '#f0a500';
+    pill.style.background = 'rgba(240,165,0,0.08)';
+  } else {
+    pill.textContent = '— Sin eclipse';
+    pill.style.color = 'rgba(232,224,213,0.3)';
+    pill.style.borderColor = 'rgba(232,224,213,0.12)';
+    pill.style.background = 'transparent';
+  }
+
+  // Time
+  document.getElementById('timeBig').textContent = fmtTime(S.timeMin);
+  let phase = '—';
+  if (S.timeMin > timing.sunset) phase = 'PUESTA DE SOL';
+  else if (cov > 0.1 && S.timeMin < timing.maximum - 1) phase = 'ASCENDIENDO';
+  else if (cov > 0.1 && S.timeMin > timing.maximum + 1) phase = 'DESCENDIENDO';
+  else if (cov > 0.1) phase = 'MÁXIMO';
+  document.getElementById('timePhase').textContent = phase;
+
+  // Coverage bar
+  const covBarEl = document.getElementById('covBar');
+  covBarEl.style.width = `${Math.max(0, cov)}%`;
+  covBarEl.style.background = isTotal
+    ? 'linear-gradient(90deg,#ff3d00,#ff7700)'
+    : cov > 85
+      ? 'linear-gradient(90deg,#cc4400,#f0a500)'
+      : 'linear-gradient(90deg,#664400,#c8a060)';
+  document.getElementById('covBig').textContent = `${cov.toFixed(1)}%`;
+  document.getElementById('covBig').style.color = col;
+  document.getElementById('covType').textContent = isTotal ? 'ECLIPSE TOTAL' : cov > 0.1 ? 'ECLIPSE PARCIAL' : 'SIN ECLIPSE';
+
+  // Luminosity
+  const lum = cov > 0 ? Math.max(1, Math.round(Math.pow(1 - cov / 100, 0.32) * 100)) : 100;
+  document.getElementById('statLum').textContent = `${lum}%`;
+  document.getElementById('statLum').style.color = col;
+  document.getElementById('statPhase').textContent = phase === '—' ? '—' : phase.split(' ')[0];
+  document.getElementById('statMax').textContent = fmtTime(timing.maximum);
+
+  // Location
+  document.getElementById('locCity').textContent = nearestCity(S.lat, S.lon);
+  document.getElementById('locLat').textContent = `${S.lat.toFixed(1)}° N`;
+  document.getElementById('locLon').textContent = `${Math.abs(S.lon).toFixed(1)}° ${S.lon < 0 ? 'O' : 'E'}`;
+
+  // Phenomena thresholds & strength
+  const phs = [
+    { id:'ph0', thresh:60,  max:80  },
+    { id:'ph1', thresh:75,  max:90  },
+    { id:'ph2', thresh:80,  max:95  },
+    { id:'ph3', thresh:88,  max:97  },
+    { id:'ph4', thresh:93,  max:99  },
+    { id:'ph5', thresh:99.8,max:100, totalOnly:true },
+    { id:'ph6', thresh:99.9,max:100, totalOnly:true },
+    { id:'ph7', thresh:99.5,max:100, totalOnly:true },
+  ];
+  phs.forEach(ph => {
+    const el = document.getElementById(ph.id);
+    const bar = el.querySelector('.ph-bar-fill');
+    const active = cov >= ph.thresh && (!ph.totalOnly || info.inTotality);
+    el.classList.toggle('on', active);
+    const str = active ? Math.min(100, Math.round((cov - ph.thresh) / (ph.max - ph.thresh) * 100)) : 0;
+    bar.style.width = `${str}%`;
+    bar.style.background = isTotal ? '#ff3d00' : '#f0a500';
+  });
+
+  // Slider fill
+  const sliderVal = parseInt(document.getElementById('timeSlider').value);
+  document.getElementById('sliderFill').style.width = `${sliderVal / 120 * 100}%`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESIZE
+// ═══════════════════════════════════════════════════════════
+function resizeSky() {
+  const rect = skyC.parentElement.getBoundingClientRect();
+  skyC.width = Math.round(rect.width);
+  skyC.height = Math.round(rect.height);
+}
+function resizeMap() {
+  const rect = mapC.parentElement.getBoundingClientRect();
+  mapC.width = Math.round(rect.width - 40);
+  mapC.height = 190;
+  heatmap = null; // rebuild
+  drawMap();
+}
+
+// ═══════════════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════════════
+mapC.addEventListener('click', e => {
+  const rect = mapC.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (mapC.width / rect.width);
+  const y = (e.clientY - rect.top) * (mapC.height / rect.height);
+  const { lat, lon } = xy2ll(x, y, mapC.width, mapC.height);
+  S.lat = Math.max(35.2, Math.min(44.8, lat));
+  S.lon = Math.max(-9.8, Math.min(4.5, lon));
+  updateUI();
+  drawMap();
+});
+
+document.getElementById('timeSlider').addEventListener('input', function() {
+  S.timeMin = 19 * 60 + parseInt(this.value);
+  document.getElementById('sliderFill').style.width = `${parseInt(this.value) / 120 * 100}%`;
+  updateUI();
+});
+
+window.addEventListener('resize', () => {
+  resizeSky();
+  resizeMap();
+});
+
+// ═══════════════════════════════════════════════════════════
+// LOOP
+// ═══════════════════════════════════════════════════════════
+function loop() {
+  const rect = skyC.parentElement.getBoundingClientRect();
+  if (skyC.width !== Math.round(rect.width) || skyC.height !== Math.round(rect.height)) {
+    skyC.width = Math.round(rect.width);
+    skyC.height = Math.round(rect.height);
+  }
+  drawSky();
+  requestAnimationFrame(loop);
+}
+
+// INIT
+resizeSky();
+resizeMap();
+updateUI();
+loop();
+</script>
+</body>
+</html>
